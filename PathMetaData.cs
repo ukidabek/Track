@@ -117,7 +117,7 @@ namespace Track
         public Vector3 EvaluateSegment(int index, float t)
         {
             Vector3[] segment = GetSegment(index);
-            return _trackTransform.TransformPoint(EvaluateCubic(segment[0], segment[1], segment[2], segment[3], t));
+            return EvaluateCubic(segment[0], segment[1], segment[2], segment[3], t);
         }
 
     }

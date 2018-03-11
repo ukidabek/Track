@@ -31,11 +31,26 @@ namespace Track
                 AddSegment();
             }
 
-            if (GUILayout.Button("Add segment"))
+            if (GUILayout.Button("Bake path"))
             {
                 BakePath();
             }
 
+            if (GUILayout.Button("Clear path"))
+            {
+                ClearPath();
+            }
+        }
+
+        private void ClearPath()
+        {
+            for (int i = 0; i < _track.Count; i++)
+            {
+                DestroyImmediate(_track[i].gameObject);
+                EditorUtility.DisplayProgressBar("Clearing path", "Deleting objects", (float)(i/ _track.Count));
+            }
+            _track.Clear();
+            EditorUtility.ClearProgressBar();
         }
 
         private void AddSegment()
@@ -55,8 +70,12 @@ namespace Track
                 for (int j = 0; j < PathMetaData.PATH_SEGMENT_COUNT; j++)
                 {
                     Vector3 newPosition = Vector3.zero;
+                    Color oldColor = Handles.color;
+
+                    Handles.color = j == 0 || j == PathMetaData.PATH_SEGMENT_COUNT - 1 ? Color.yellow : Handles.color;
                     newPosition = Handles.FreeMoveHandle(segment[j], _transform.rotation, .1f, Vector3.zero, Handles.SphereHandleCap);
                     MovePoint(newPosition, segment[j], startIndex, j);
+                    Handles.color = oldColor;
                 }
 
                 Handles.DrawBezier(segment[0], segment[3], segment[1], segment[2], Color.green, null, 3f);
@@ -86,6 +105,8 @@ namespace Track
 
         public void BakePath()
         {
+            ClearPath();
+
             float deltaT = 1f / _path.Resolution;
             List<Vector3> points = new List<Vector3>();
 
@@ -94,7 +115,7 @@ namespace Track
                 for (int j = 0; j < _path.Resolution; j++)
                 {
                     points.Add( _path.EvaluateSegment(i, deltaT * j));
-                    EditorUtility.DisplayProgressBar("Baking path", "", (float)(_path.TotalPointsCount / points.Count) / 2f);
+                    EditorUtility.DisplayProgressBar("Baking path", "Calculating positions", (float)(_path.TotalPointsCount / points.Count));
                 }
             }
 
@@ -102,18 +123,19 @@ namespace Track
             {
                 GameObject gameObject = new GameObject();
                 gameObject.transform.SetParent(_track.transform);
-                _track.TrackPoints.Add(gameObject.transform);
-                _track.TrackPoints[_track.TrackPoints.Count -1].transform.position = points[i];
+                _track.Add(gameObject.transform);
+                _track[_track.Count -1].transform.position = points[i];
+                EditorUtility.DisplayProgressBar("Baking path", "Cretins positions", (float)(i / points.Count));
+
             }
 
-            for (int i = 1; i < _track.TrackPoints.Count; i++)
+            for (int i = 1; i < _track.Count; i++)
             {
-                _track.TrackPoints[i - 1].transform.LookAt(_track.TrackPoints[i].transform.position);
+                _track[i - 1].LookAt(_track[i].position);
+                EditorUtility.DisplayProgressBar("Baking path", "Rotating positions", (float)(i / points.Count));
             }
 
             EditorUtility.ClearProgressBar();
-            
         }
-
     }
 }
