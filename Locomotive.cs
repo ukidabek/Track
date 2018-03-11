@@ -10,6 +10,9 @@ namespace Track
         private float _speed = 5;
 
         [SerializeField]
+        private float _angularSpeed = 120f;
+
+        [SerializeField]
         private Track _track = null;
 
         [SerializeField]
@@ -45,7 +48,7 @@ namespace Track
 
             transform.position = Vector3.MoveTowards(transform.position, _track[_currentIndex].position, Time.deltaTime * _speed);
 
-            transform.LookAt(_track[_currentIndex], transform.up);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, _track[_currentIndex].rotation, Time.deltaTime * _angularSpeed);
         }
     }
 }
